@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/env sh
 # $Header: /data/cvsrepo/assess-tools/tools/mkxref.sh,v 1.3 2013/10/09 05:22:38 hmizuno Exp $
 # $Name: rev_1_10 $
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/env sh
 # $Header: /data/cvsrepo/assess-tools/tools/ckdupfile-delete.sh,v 1.1 2014/08/15 05:18:09 hmizuno Exp $
 # $Name: rev_1_10 $
 

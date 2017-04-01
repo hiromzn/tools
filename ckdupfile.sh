@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/env sh
 # $Header: /data/cvsrepo/assess-tools/tools/ckdupfile.sh,v 1.7 2014/10/15 06:51:47 hmizuno Exp $
 # $Name: rev_1_10 $
 
