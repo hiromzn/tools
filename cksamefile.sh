@@ -1,5 +1,5 @@
 #!/bin/env sh
-# $Header: /data/cvsrepo/assess-tools/tools/ckdupfile.sh,v 1.7 2014/10/15 06:51:47 hmizuno Exp $
+# $Header$
 # $Name: rev_1_10 $
 
 myprog=$0
@@ -9,7 +9,7 @@ usage()
 {
 cat <<EOF_USAGE
 #
-# check duplicate file
+# check same file
 #
 
 usage:
@@ -20,10 +20,10 @@ arguments:
 
 output:
   ./res_<timestr>/ ..... directory which has all results fles.
-  ./res_<timestr>/dupflist ... duplicate file list (without file path)
-  ./res_<timestr>/flist_list ... duplicate file list with serial number
+  ./res_<timestr>/sameflist ... same file name list (without file path)
+  ./res_<timestr>/flist_list ... same file name list with serial number
                               format : n filename
-  ./res_<timestr>/flist_DDDDDDDD ... all duplicate file name in <n>
+  ./res_<timestr>/flist_DDDDDDDD ... file list with same file name in <n>
                               format : file name with path...
   ./res_<timestr>/results ... results file
   ./res_<timestr>/allfilelist ... all target filelist with path
@@ -39,7 +39,7 @@ timestr=`date +%Y-%m%d-%H%M-%S`
 
 RESULTS_DIR=./res_$timestr
 
-DUPFLIST=$RESULTS_DIR/dupflist
+DUPFLIST=$RESULTS_DIR/sameflist
 FLIST_BASE=$RESULTS_DIR/flist
 FLIST_LIST=${FLIST_BASE}_list
 RESULT_FILE=$RESULTS_DIR/results
@@ -71,7 +71,7 @@ get_n_flist_name()
     printf "${FLIST_BASE}_%08d" $1;
 }
 
-getdupflist()
+getsameflist()
 {
     touch ${FLIST_LIST};
     n=0;
@@ -144,22 +144,22 @@ ENVIRONMENT:
   top directory of source fie : $topdir
 
 RESULTS files:
-  $DUPFLIST : duplicate fle name list
+  $DUPFLIST : same fle name list
         format : <fname>
 
-  ${FLIST_LIST} : duplicate fle name and number list
+  ${FLIST_LIST} : same fle name and number list
         format : <n> <fname>
 
   $ftop
-  $fend : duplicate name file 
+  $fend : same file name
         format : <fname_with_path>
 
   $RESULT_FILE : results file (copy of stdout)
 
 RESULTS:
-  total number of duplicate file  : $max_n
-  number of duplicate file (SAME) : $num_same
-  number of duplicate file (DIFF) : $num_diff
+  total number of same file name : $max_n
+  number of file which is copied (same name & same contents) : $num_same
+  number of file with same name (different contents) : $num_diff
 EOF
 }
 
@@ -167,7 +167,7 @@ main_func()
 {
     checkargs $*;
     setenv;
-    getdupflist;
+    getsameflist;
 
     check_files |tee $RESULT_FILE
 

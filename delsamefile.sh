@@ -1,13 +1,13 @@
 #!/bin/env sh
-# $Header: /data/cvsrepo/assess-tools/tools/ckdupfile-delete.sh,v 1.1 2014/08/15 05:18:09 hmizuno Exp $
+# $Header:$
 # $Name: rev_1_10 $
 
 #
-# ckdupfileの結果ファイルを参照して同じファイルを
+# cksamefileの結果ファイルを参照して同じファイルを
 # 1つだけ残して他のファイルを削除するツール
 #
 # 使い方：
-#  ckdupfile-delete.sh <ckdupfile.shの結果ディレクトリ>
+#  delsamefile.sh <cksamefile.shの結果ディレクトリ>
 #
 
 if [ ! -s "$1/results" ] ;then

@@ -1,14 +1,14 @@
-# $Header: /data/cvsrepo/assess-tools/tools/ckdupfile.sh.man,v 1.2 2014/08/15 04:25:23 hmizuno Exp $
+# $Header$
 # $Name: rev_1_10 $
 
-ckdupfile.shマニュアル
+cksamefileマニュアル
 
 概要：
 　同一ファイル名のファイルを探し出して、内容が同じかどうかを
 　チェックする。
 
 使い方：
-  ckdupfile.sh <topdir>
+  cksamefile <topdir>
 
 引数：
    <topdir> .... チェックするソースが入っているディレクトリ
@@ -18,13 +18,13 @@ ckdupfile.shマニュアル
   ./res_<timestr>/ ..... 結果ファイルが入るディレクトリ
 	（プログラムを実行したカレントディレクトリ直下に作成される。）
 
-  ./res_<timestr>/dupflist ... 同一ファイル名のリスト
+  ./res_<timestr>/sameflist ... 同一ファイル名のリスト
 	フォーマット：
 		file_name_a
 		file_name_b
 			:
 
-  ./res_<timestr>/flist_list ... dupflistの各ファイルに通し番号を割り当てたリスト
+  ./res_<timestr>/flist_list ... sameflistの各ファイルに通し番号を割り当てたリスト
 	フォーマット：
 		1 file_name_a
 		2 file_name_b
@@ -47,9 +47,9 @@ ckdupfile.shマニュアル
 		SAME:231:filebb:(count:3)
 
 		RESULTS:
-		  total number of duplicate file  : 232
-		  number of duplicate file (SAME) : 141
-		  number of duplicate file (DIFF) : 91
+		  total number of same file name : 232
+		  number of file which is copied (same name & same contents) : 141
+		  number of file with same name (different contents) : 91
 
 戻り値：
   0 : 成功
