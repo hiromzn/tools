@@ -1,0 +1,29 @@
+
+proxy="http://web-proxy.jp.hpecorp.net:8080"
+
+case "$1" in
+set )
+	export http_proxy=$proxy
+	export https_proxy=$proxy
+	;;
+
+unset )
+	unset http_proxy;
+	unset https_proxy;
+	;;
+* )
+	cat <<EOF
+usage : \$ . $0 { set | unset }"
+  proxy is : $proxy"
+
+  check please using the follwing command.
+	\$ env |grep proxy
+
+  ## CAUTION ##
+    this script direct run
+        OK: \$ . $0
+    instead of standard run
+        NG: \$ $0
+EOF
+	;;
+esac

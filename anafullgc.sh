@@ -1,6 +1,29 @@
-ALL_LOG="./log/*"
 
-cat $ALL_LOG |grep 'Full GC' |sort |tee fullgc \
+logdir="$1"
+outdir="$2"
+
+mkdir $outdir;
+
+get_sorted_gclog_list() # logdir
+{
+	logdir="$1"
+
+	(
+	cd $logdir;
+	for f in gc_pid*log*current
+	do
+		datetime=`echo $f |sed 's/.*_\(....-..-.._..-..-..\).*/\1/'`;
+		echo $datetime
+	done |sort |while read dt
+	do
+		org=gc_pid*${dt}*log*current
+		echo "$logdir/$org"
+	done
+	)
+}
+
+cat `get_sorted_gclog_list $logdir` \
+	|grep 'Full GC' |sort |tee $outdir/fullgc \
 	|if `which perl >/dev/null 2>&1`; then \
 		perl -e '
 		BEGIN {
@@ -25,8 +48,9 @@ cat $ALL_LOG |grep 'Full GC' |sort |tee fullgc \
 		-e 's/(/ /g' -e 's/)/ /g' \
 		-e 's/,//g' \
 		-e 's/: / /g' \
-		-e 's/[0-9]T[0-9]/ /g' \
 		-e 's/=/ /g' -e 's/->/ /g' \
-	|tee fullgc.fil \
+	|tee $outdir/fullgc.fil \
 	|sed -e 's/ [ ]*/,/g' \
-	>fullgc.fil.csv
+	>$outdir/fullgc.fil.csv
+
+###		-e 's/[0-9]T[0-9]/ /g' 
