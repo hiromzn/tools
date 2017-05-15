@@ -6,9 +6,9 @@ MYDIR=`dirname $0`
 
 #
 # directory:
-#	BACKUP_BASE_DIR/latest	 .... latest backup
-#	BACKUP_BASE_DIR/latest-01 ... backup of one before
-#	BACKUP_BASE_DIR/latest-02 ... backup of two before
+#	BACKUP_BASE_DIR/latest-00 .... latest backup
+#	BACKUP_BASE_DIR/latest-01 .... backup of one before
+#	BACKUP_BASE_DIR/latest-02 .... backup of two before
 #		:
 #	BACKUP_BASE_DIR/latest-<$N_PREV> ... most old backup
 #
