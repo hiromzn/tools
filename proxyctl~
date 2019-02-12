@@ -1,22 +1,7 @@
 
-proxy_host=web-proxy.jp.hpecorp.net
-proxy_port=8080
-
-proxy="http://$proxy_host:$proxy_port"
+proxy="http://web-proxy.jp.hpecorp.net:8080"
 
 case "$1" in
-checkset )
-        ping -n 1 -w 500 $proxy_host >/dev/null 2>&1
-	if [ "$?" -ne 0 ]
-	then
-		echo "no proxy_host($proxy_host)"
-		unset http_proxy;
-		unset https_proxy;
-	else
-		export http_proxy=$proxy
-		export https_proxy=$proxy
-	fi
-	;;
 set )
 	export http_proxy=$proxy
 	export https_proxy=$proxy
@@ -47,14 +32,14 @@ info )
 
 * )
 	cat <<EOF
-usage : \$ . $0 { set | checkset | setall | unset | unsetall | info }"
+usage : \$ . $0 { set | unset | info }"
   proxy is : $proxy"
 
   check please using the follwing command.
 	\$ env |grep proxy
 
   ## CAUTION ##
-    this script need to run by direct
+    this script direct run
         OK: \$ . $0
     instead of standard run
         NG: \$ $0
