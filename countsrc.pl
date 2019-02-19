@@ -67,22 +67,64 @@ my @extlist = (
     "py",
     );
 
+#
+# pattern
+#
+my @kind_ptn = (
+    "c",
+    "cpp",
+    "java",
+    "shell",
+    "script",
+    "make",
+    );
+
+my %ext_ptn = (
+    "c", "c h pc",
+    "cpp", "C H cpp",
+    "java", "java jsp html",
+    "shell", "sh csh ksh bash tcsh",
+    "script", "awk nawk gawk perl pl py",
+    "make", "mk",
+    );
+
+my %match_ptn = (
+    "make", "MATCH_Makefile MATCH_makefile",
+    );
+
 my %ext_outfh;
 my $OTHER_FH;
 
 sub open_ext_outfh
 {
     my( $resd ) = @_;
-    
-    foreach $ext (@extlist) {
-	# printf( "open output : ext: %s\n", $ext );
-	open( $ext_outfh{ $ext }, ">$resd/flist.$ext.list" )
-	    or die( "can't open : output : >$resd/flist.$ext.list\n" );
+
+    foreach $kind (@kind_ptn) {
+	if ( exists( $ext_ptn{ $kind } ) ) {
+	    @ext_ary = split( ' ', $ext_ptn{ $kind } );
+	    foreach $ext (@ext_ary) {
+		$key = $kind . '.' . $ext;
+		printf( "open output : key: %s\n", $key );
+		open( $ext_outfh{ $key }, ">$resd/flist.$key.list" )
+		    or die( "can't open : output : >$resd/flist.$key.list\n" );
+	    }
+	}
+	if ( exists( $match_ptn{ $kind } ) ) {
+	    @match_ary = split( ' ', $match_ptn{ $kind } );
+	    foreach $match (@match_ary) {
+		$match =~ s/^MATCH_//;
+		$key = $kind . '.' . $match;
+		printf( "open output : key: %s\n", $key );
+		open( $ext_outfh{ $key }, ">$resd/flist.$key.list" )
+		    or die( "can't open : output : >$resd/flist.$key.list\n" );
+	    }
+	}
     }
-    # printf( "open output : ext: OTHER\n", $ext );
+    printf( "open output : ext: OTHER\n" );
     open( OTHER_OUTF, ">$resd/flist.OTHER.list" )
 	or die( "can't open : output : >$resd/flist.OTHER.list\n" );
 }
+
 sub close_ext_outfh
 {
     my( $resd ) = @_;
@@ -97,7 +139,7 @@ sub close_ext_outfh
 
 sub create_extflist
 {
-    my( $srcd, $resd, $ext ) = @_;
+    my( $srcd, $resd ) = @_;
     
     open( FIND, "find $srcd -type f |" ) or die( "can't open : command : find $srcd -type f |\n" );
     
@@ -105,26 +147,49 @@ sub create_extflist
 	chop();
 	my $fn = $_;
 	my $out = 0;
-	foreach $ext (@extlist) {
-	    if ( "$fn" =~ /\.$ext$/ ) {
-		# printf( "# $ext : $fn\n" );
-		printf( { $ext_outfh{ $ext } } "$fn\n" );
-		$out = 1;
+
+
+	foreach $kind (@kind_ptn) {
+	    if ( exists( $ext_ptn{ $kind } ) ) {
+		@ext_ary = split( ' ', $ext_ptn{ $kind } );
+		foreach $ext (@ext_ary) {
+		    $key = $kind . '.' . $ext;
+		    if ( "$fn" =~ /\.$ext$/ ) {
+			printf( { $ext_outfh{ $key } } "$fn\n" );
+			$out = 1;
+			break;
+		    }
+		}
+	    }
+	    if ( $out ) {
+		break;
+	    }
+	    if ( exists( $match_ptn{ $kind } ) ) {
+		@match_ary = split( ' ', $match_ptn{ $kind } );
+		foreach $match (@match_ary) {
+		    $match_org = $match;
+		    $match =~ s/^MATCH_//;
+		    $key = $kind . '.' . $match;
+		    if ( ( "$fn" =~ /\/$match$/ ) || ( "$fn" =~ /^$match$/ ) ) {
+			printf( { $ext_outfh{ $key } } "$fn\n" );
+			$out = 1;
+			break;
+		    }
+		}
+	    }
+	    if ( ! $out ) {
+		printf( OTHER_OUTF "$fn\n" );
 	    }
 	}
-	if ( ! $out ) {
-	    # printf( "# OTHER : $fn\n" );
-	    printf( OTHER_OUTF "$fn\n" );
-	}
     }
-}    
+}
 
 sub create_flist
 {
     my( $srcd, $resd ) = @_;
     open_ext_outfh( $resd );
     create_extflist( $srcd, $resd );
-    close_ext_outfh( $resd );
+    #close_ext_outfh( $resd );
 }
 
 sub count_flist
@@ -145,7 +210,7 @@ sub countsrc
 {
     my( $srcd, $resd ) = @_;
     create_flist( $srcd, $resd );
-    count_flist( $srcd, $resd );
+    # count_flist( $srcd, $resd );
 }
 
 sub cleanup_dir
