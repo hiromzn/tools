@@ -5,6 +5,9 @@ use Getopt::Long;
 my $argsrc_def = "./";
 my $argres_def = "/tmp/countsrc_results";
 
+my $HEAD_STR = "res";
+my $FLIST_STR = "flist";
+
 #
 # usage:
 #
@@ -16,6 +19,8 @@ usage : countsrc.pl : count source code
 Option : 
     -s <source_top_dir>    .... default $argsrc_def
     -r <results_dir>       .... default $argres_def
+    -v                     .... print message
+    -d                     .... print debug message
 
 environment : 
     SRC_DIR    .... source code top directory
@@ -39,45 +44,18 @@ my $argres = "";
 GetOptions(
     's=s' => \$argsrc, # source top directory
     'r=s' => \$argres, # results directory
+    'v' => \$warning,  # print message
+    'd' => \$debug,    # print debug
     ) or usage();
 
-#
-# file extention list
-#
-my @extlist = (
-    "c",
-    "h",
-    "pc",
-    "C",
-    "H",
-    "cpp",
-    "java",
-    "jsp",
-    "html",
-    "sh",
-    "csh",
-    "ksh",
-    "bash",
-    "tcsh",
-    "awk",
-    "nawk",
-    "gawk",
-    "perl",
-    "pl",
-    "py",
-    );
+if ( $debug ) {
+    $warning = 1;
+}
 
 #
 # pattern
 #
-my @kind_ptn = (
-    "c",
-    "cpp",
-    "java",
-    "shell",
-    "script",
-    "make",
-    );
+$OTHER_KEY="OTHER.NA";
 
 my %ext_ptn = (
     "c", "c h pc",
@@ -85,56 +63,40 @@ my %ext_ptn = (
     "java", "java jsp html",
     "shell", "sh csh ksh bash tcsh",
     "script", "awk nawk gawk perl pl py",
-    "make", "mk",
-    );
-
-my %match_ptn = (
-    "make", "MATCH_Makefile MATCH_makefile",
+    "make", "mk MATCH_Makefile MATCH_makefile",
+    "OTHER", "",
     );
 
 my %ext_outfh;
-my $OTHER_FH;
 
 sub open_ext_outfh
 {
     my( $resd ) = @_;
 
-    foreach $kind (@kind_ptn) {
-	if ( exists( $ext_ptn{ $kind } ) ) {
-	    @ext_ary = split( ' ', $ext_ptn{ $kind } );
-	    foreach $ext (@ext_ary) {
-		$key = $kind . '.' . $ext;
-		printf( "open output : key: %s\n", $key );
-		open( $ext_outfh{ $key }, ">$resd/flist.$key.list" )
-		    or die( "can't open : output : >$resd/flist.$key.list\n" );
-	    }
+    while( ( $kind, $value ) = each ( %ext_ptn ) ) {
+	@ext_ary = split( ' ', $value );
+	if ( $#ext_ary < 0 ) {
+	    @ext_ary = ( "NA" ); # OTHER.NA
 	}
-	if ( exists( $match_ptn{ $kind } ) ) {
-	    @match_ary = split( ' ', $match_ptn{ $kind } );
-	    foreach $match (@match_ary) {
-		$match =~ s/^MATCH_//;
-		$key = $kind . '.' . $match;
-		printf( "open output : key: %s\n", $key );
-		open( $ext_outfh{ $key }, ">$resd/flist.$key.list" )
-		    or die( "can't open : output : >$resd/flist.$key.list\n" );
-	    }
+	foreach $ext (@ext_ary) {
+	    $ext =~ s/^MATCH_//;
+	    $key = $kind . '.' . $ext;
+	    printf( "open output : key: %s\n", $key ) if ( $debug );
+	    open( $ext_outfh{ $key }, ">$resd/$HEAD_STR.$key.$FLIST_STR" )
+		or die( "can't open : output : >$resd/$HEAD_STR.$key.$FLIST_STR\n" );
 	}
     }
-    printf( "open output : ext: OTHER\n" );
-    open( OTHER_OUTF, ">$resd/flist.OTHER.list" )
-	or die( "can't open : output : >$resd/flist.OTHER.list\n" );
 }
 
 sub close_ext_outfh
 {
     my( $resd ) = @_;
     
-    foreach $ext (@extlist) {
-	close( $ext_outfh{ $ext } )
-	    or die( "can't close FH: >$resd/flist.$ext.list\n" );
+    while ( ( $key, $fh ) = each( %ext_outfh ) ) {
+	printf( "close : $key\n" ) if ( $debug );
+	close( $fh )
+	    or die( "can't close FH: >$resd/$HEAD_STR.$key.$FLIST_STR\n" );
     }
-    close( OTHER_OUTF )
-	or die( "can't close FH: >$resd/flist.OTHER.list\n" );
 }
 
 sub create_extflist
@@ -148,12 +110,19 @@ sub create_extflist
 	my $fn = $_;
 	my $out = 0;
 
-
-	foreach $kind (@kind_ptn) {
-	    if ( exists( $ext_ptn{ $kind } ) ) {
-		@ext_ary = split( ' ', $ext_ptn{ $kind } );
-		foreach $ext (@ext_ary) {
-		    $key = $kind . '.' . $ext;
+	while( ( $kind, $value ) = each ( %ext_ptn ) ) {
+	    @ext_ary = split( ' ', $value );
+	    foreach $extptn (@ext_ary) {
+		$ext = $extptn;
+		$ext =~ s/^MATCH_//;
+		$key = $kind . '.' . $ext;
+		if ( $extptn =~ /^MATCH_/ ) {
+		    if ( ( "$fn" =~ /\/$ext$/ ) || ( "$fn" =~ /^$ext$/ ) ) {
+			printf( { $ext_outfh{ $key } } "$fn\n" );
+			$out = 1;
+			break;
+		    }
+		} else {
 		    if ( "$fn" =~ /\.$ext$/ ) {
 			printf( { $ext_outfh{ $key } } "$fn\n" );
 			$out = 1;
@@ -161,24 +130,8 @@ sub create_extflist
 		    }
 		}
 	    }
-	    if ( $out ) {
-		break;
-	    }
-	    if ( exists( $match_ptn{ $kind } ) ) {
-		@match_ary = split( ' ', $match_ptn{ $kind } );
-		foreach $match (@match_ary) {
-		    $match_org = $match;
-		    $match =~ s/^MATCH_//;
-		    $key = $kind . '.' . $match;
-		    if ( ( "$fn" =~ /\/$match$/ ) || ( "$fn" =~ /^$match$/ ) ) {
-			printf( { $ext_outfh{ $key } } "$fn\n" );
-			$out = 1;
-			break;
-		    }
-		}
-	    }
 	    if ( ! $out ) {
-		printf( OTHER_OUTF "$fn\n" );
+		printf( { $ext_outfh{ $OTHER_KEY } } "$fn\n" );
 	    }
 	}
     }
@@ -189,19 +142,29 @@ sub create_flist
     my( $srcd, $resd ) = @_;
     open_ext_outfh( $resd );
     create_extflist( $srcd, $resd );
-    #close_ext_outfh( $resd );
+    close_ext_outfh( $resd );
 }
 
 sub count_flist
 {
     my( $srcd, $resd ) = @_;
     
-    foreach $ext (@extlist, "OTHER") {
-	if ( -s "$resd/flist.$ext.list" ) {
-	    printf( "RESULTS : %8s : total line: ", "$ext" );
-	    system( "cat $resd/flist.$ext.list |LANG=C xargs wc |tee $resd/flist.$ext.wc |tail -1 |sed 's/^ *//' |cut '-d ' -f1" );
+    foreach ( sort keys %ext_outfh ) {
+	$ext = $_;
+	$kind = $ext;
+	$kind =~ s/\..*$//;
+	$fh = $ext_outfh{ $ext };
+	if ( -s "$resd/$HEAD_STR.$ext.$FLIST_STR" ) {
+	    printf( "RESULTS : %-16s : total line: ", "$ext" );
+	    system( "(echo /dev/null; cat $resd/$HEAD_STR.$ext.$FLIST_STR) |LANG=C xargs wc |sed '1d' |tee $resd/$HEAD_STR.$ext.wc |tail -1 |sed 's/total/$ext/' |tee -a $resd/$HEAD_STR.$kind._ktotal |sed 's/^ *//' |cut '-d ' -f1" );
 	} else {
-	    printf( stderr "message : %8s : no file\n", "$ext" );
+	    printf( stderr "message : %-16s : no file\n", "$ext" ) if ( $warning );
+	}
+    }
+    foreach $kind ( sort keys %ext_ptn ) {
+	if ( -s "$resd/$HEAD_STR.$kind._ktotal" ) {
+	    printf( "TOTAL : %-16s : total line: ", "$kind" );
+	    system( "cat $resd/$HEAD_STR.$kind._ktotal |awk '{ a+=\$1; b+=\$2; c+=\$3; } END { print a,b,c; }' |tee $resd/$HEAD_STR.$kind._total |sed 's/^ *//' |cut '-d ' -f1" );
 	}
     }
 }
@@ -210,7 +173,7 @@ sub countsrc
 {
     my( $srcd, $resd ) = @_;
     create_flist( $srcd, $resd );
-    # count_flist( $srcd, $resd );
+    count_flist( $srcd, $resd );
 }
 
 sub cleanup_dir
