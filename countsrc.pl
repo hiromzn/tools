@@ -14,22 +14,25 @@ my $FLIST_STR = "flist";
 sub usage
 {
     my $msg = "
-usage : countsrc.pl : count source code
+NAME: countsrc.pl : count source code
 
-Option : 
+SYNOPSIS: countsrc.pl [-v] [-d] [-s <top_dir>] [-r <results_dir>] 
+
+DESCRIPTION: 
+  options :
     -s <source_top_dir>    .... default $argsrc_def
     -r <results_dir>       .... default $argres_def
     -v                     .... print message
     -d                     .... print debug message
 
-environment : 
+  priority of source or results directory :
+    option > environment > default
+
+ENVIRONMENT:
     SRC_DIR    .... source code top directory
     RES_DIR    .... results directory
 
-priority of source or results directory :
-    option > environment > default
-
-sample operation:
+EXAMPLES:
     countsrc.pl
     countsrc.pl -src /usr/local/dev/version1
     countsrc.pl -src /usr/local/dev/version1 -res /var/tmp/countres

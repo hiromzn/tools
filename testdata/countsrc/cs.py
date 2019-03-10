@@ -7,9 +7,8 @@ import inspect
 import subprocess
 import re
 
-#argsrc_def = "./"
-argsrc_def = "./testdata/countsrc"
-argres_def = "/tmp/countsrc_results"
+argsrc_def = "./";
+argres_def = "/tmp/countsrc_results";
 
 HEAD_STR = "res";
 FLIST_STR = "flist";
@@ -171,15 +170,13 @@ def create_extflist( srcd, resd ):
                 ext = re.sub( '^MATCH_', '', extptn )
                 key = kind + '.' + ext;
                 if re.match( "^MATCH_", extptn ):
-                    bn = os.path.basename( fn )[:-1]
-#                    print( "MATCH:" + key + ': (' + bn + '==' + ext + ') :' + fn )
-                    if ext == bn:
+                    if re.match( '.*/' + ext + '$', fn ) or re.match( '^' + ext + '$', fn ):
                         ext_outfh[ key ].write( fn )
                         print( "OUT {} : {}".format( key, fn ) )
                         out = 1
                 else:
-#                    print( "EXT:" + key + ':' + '.*.' + ext + ":" + fn )
-                    if re.match( '.*\.' + ext, fn ):
+                    print( "MMM:" + key + ':' + '.*.' + ext + ":" + fn )
+                    if re.match( '.*¥.' + ext, fn ):
                         ext_outfh[ key ].write( fn )
                         print( "OUT {} : {}".format( key, fn ) )
                         out = 1
