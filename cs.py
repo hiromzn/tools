@@ -15,9 +15,11 @@ argres = "";
 argsrc_def = "./testdata/countsrc"
 argres_def = "/tmp/countsrc_results"
 
+# controle print leve
 DEBUG = 0;
 WARNING = 0;
 
+# constant value
 HEAD_STR = "res";
 FLIST_STR = "flist";
 
