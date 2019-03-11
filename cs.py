@@ -6,14 +6,35 @@ import traceback
 import inspect
 import subprocess
 import re
+import argparse
+
+argsrc = "";
+argres = "";
 
 #argsrc_def = "./"
 argsrc_def = "./testdata/countsrc"
 argres_def = "/tmp/countsrc_results"
 
+DEBUG = 0;
+WARNING = 0;
+
 HEAD_STR = "res";
 FLIST_STR = "flist";
 
+#
+# parse arguments
+#
+parser = argparse.ArgumentParser(description="count source code")
+# exclusive options
+group = parser.add_mutually_exclusive_group()
+group.add_argument("-v", "--verbose", action="store_true")
+group.add_argument("-d", "--debug", action="store_true")
+group.add_argument("-q", "--quiet", action="store_true")
+# option with value
+parser.add_argument("-s", "--srcdir", default=argsrc_def, help="source code direcotry")
+parser.add_argument("-r", "--resdir", default=argres_def, help="results direcotry")
+# parse !
+args = parser.parse_args()
 
 #
 # usage:
@@ -22,9 +43,9 @@ def usage():
     print( """
 NAME: countsrc.pl : count source code
 
-SYNOPSIS: countsrc.pl [-v] [-d] [-s <top_dir>] [-r <results_dir>] 
+SYNOPSIS: countsrc.pl [-v] [-d] [-s <top_dir>] [-r <results_dir>]
 
-DESCRIPTION: 
+DESCRIPTION:
   options :
     -s <source_top_dir>    .... default $argsrc_def
     -r <results_dir>       .... default $argres_def
@@ -45,14 +66,6 @@ EXAMPLES:
 """ );
     sys.exit( 1 )
 
-argsrc = "";
-argres = "";
-
-debug = 0;
-warning = 0;
-
-if debug:
-    warning = 1
 
 #
 # pattern
@@ -73,41 +86,33 @@ ext_ptn = {
 
 ext_outfh = {}
 
-print( argsrc_def );
-print( "debug:%d" % debug );
-print( "warning:%d" % warning );
-
-#usage();
-
-#for key, value in ext_ptn.items():
-#    print( key + ":" )
-#    print( value )
-
-
-# get env
-print(os.environ.get('LANG'))
-print(os.environ.get('NEW_KEY'))
-
-
 def main():
-    srctop = os.environ.get( 'SRC_DIR' )
+    global DEBUG, WARNING
 
+    srctop = os.environ.get( 'SRC_DIR' )
     if srctop == None:
         srctop = argsrc_def
-
-    if argsrc != "":
-        srctop = argsrc
+    if args.srcdir != "":
+        srctop = args.srcdir
 
     resdir = os.environ.get( 'RES_DIR' )
     if resdir == None:
         resdir = argres_def
+    if args.resdir != "":
+        resdir = args.resdir
 
-    if argres != "":
-        resdir = argres
+    if not args.quiet:
+        DEBUG = args.debug
+        if args.debug:
+            WARNING = True
+        else:
+            WARNING = args.verbose
 
     print( "Source directory :" + str( srctop ) );
     print( "Results directory :" + str( resdir ) );
-    
+    print( "debug:%d" % DEBUG );
+    print( "warning:%d" % WARNING );
+
     cleanup_dir( resdir );
     countsrc( srctop, resdir );
 
@@ -138,16 +143,15 @@ def create_flist( srcd, resd ):
 def count_flist( srcd, resd ):
     print( get_func_name() + ":" + str( get_func_args() ) )
 
-#debug = 1
 def open_ext_outfh( resd ):
     for kind, value in ext_ptn.items():
-        if debug:
+        if DEBUG:
             print( ">>> OPEN OUT FH : {}:{}".format( kind, value ) )
         for e in value:
             ext = re.sub( '^MATCH_', '', e)
             key = kind + '.' + ext;
             fname = "{}/{}.{}.{}".format( resd, HEAD_STR, key, FLIST_STR )
-            if debug:
+            if DEBUG:
                 print( "open output : {}:{}".format( key, fname ) )
             try:
                 ext_outfh[ key ] = open( fname, 'w' )
@@ -187,4 +191,3 @@ def create_extflist( srcd, resd ):
                 ext_outfh[ OTHER_KEY ].write( fn )
 
 main()
-
