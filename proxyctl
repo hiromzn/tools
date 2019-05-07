@@ -1,5 +1,6 @@
 
-proxy_host=web-proxy.jp.hpecorp.net
+# - 2019/5/7# proxy_host=web-proxy.jp.hpecorp.net
+proxy_host=web-proxy.sgp.hp.com
 proxy_port=8080
 
 proxy="http://$proxy_host:$proxy_port"
