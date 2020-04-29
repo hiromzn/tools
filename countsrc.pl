@@ -104,39 +104,45 @@ sub close_ext_outfh
 
 sub create_extflist
 {
-    my( $srcd, $resd ) = @_;
+	my( $srcd, $resd ) = @_;
     
-    open( FIND, "find $srcd -type f |" ) or die( "can't open : command : find $srcd -type f |\n" );
+	open( FIND, "find $srcd -type f |" ) or die( "can't open : command : find $srcd -type f |\n" );
     
-    while( <FIND> ) {
-	chop();
-	my $fn = $_;
-	my $out = 0;
+	while( <FIND> ) {
+		chop();
+		my $fn = $_;
+		my $out = 0;
 
-	while( ( $kind, $value ) = each ( %ext_ptn ) ) {
-	    @ext_ary = split( ' ', $value );
-	    foreach $extptn (@ext_ary) {
-		$ext = $extptn;
-		$ext =~ s/^MATCH_//;
-		$key = $kind . '.' . $ext;
-		if ( $extptn =~ /^MATCH_/ ) {
-		    if ( ( "$fn" =~ /\/$ext$/ ) || ( "$fn" =~ /^$ext$/ ) ) {
-			printf( { $ext_outfh{ $key } } "$fn\n" );
-			$out = 1;
-			break;
-		    }
-		} else {
-		    if ( "$fn" =~ /\.$ext$/ ) {
-			printf( { $ext_outfh{ $key } } "$fn\n" );
-			$out = 1;
-			break;
-		    }
+		printf( "DEBUG:flist:###FILE$fn\n" ) if($debug);
+		while( ( $kind, $value ) = each ( %ext_ptn ) ) {
+			printf( "DEBUG:flist:##KIND:$kind\n" ) if($debug);
+	    	@ext_ary = split( ' ', $value );
+	    	foreach $extptn (@ext_ary) {
+				printf( "DEBUG:flist:#EXT:$extptn\n" ) if($debug);
+				$ext = $extptn;
+				$ext =~ s/^MATCH_//;
+				$key = $kind . '.' . $ext;
+				if ( $extptn =~ /^MATCH_/ ) {
+			    	if ( ( "$fn" =~ /\/$ext$/ ) || ( "$fn" =~ /^$ext$/ ) ) {
+						printf( { $ext_outfh{ $key } } "$fn\n" );
+						printf( "DEBUG:flist:$key:$fn\n" ) if($debug);
+						$out = 1;
+						break;
+			    	}
+				} else {
+					if ( "$fn" =~ /\.$ext$/ ) {
+						printf( { $ext_outfh{ $key } } "$fn\n" );
+						printf( "DEBUG:flist:$key:$fn\n" ) if($debug);
+						$out = 1;
+						break;
+					}
+				}
+			}
+			if ( ! $out ) {
+				printf( { $ext_outfh{ $OTHER_KEY } } "$fn\n" );
+				printf( "DEBUG:flist:$OTHER_KEY:$fn\n" ) if($debug);
+	    	}
 		}
-	    }
-	    if ( ! $out ) {
-		printf( { $ext_outfh{ $OTHER_KEY } } "$fn\n" );
-	    }
-	}
     }
 }
 
