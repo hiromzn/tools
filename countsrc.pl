@@ -138,11 +138,11 @@ sub create_extflist
 					}
 				}
 			}
-			if ( ! $out ) {
-				printf( { $ext_outfh{ $OTHER_KEY } } "$fn\n" );
-				printf( "DEBUG:flist:$OTHER_KEY:$fn\n" ) if($debug);
-	    	}
 		}
+		if ( ! $out ) {
+			printf( { $ext_outfh{ $OTHER_KEY } } "$fn\n" );
+			printf( "DEBUG:flist:$OTHER_KEY:$fn\n" ) if($debug);
+    	}
     }
 }
 
