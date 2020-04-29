@@ -1,4 +1,5 @@
 
+# proxy_host=web-proxy.sgp.hp.com
 proxy_host=web-proxy.jp.hpecorp.net
 proxy_port=8080
 
