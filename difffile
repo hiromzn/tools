@@ -1,0 +1,55 @@
+#!/bin/sh
+
+MYNAME="`basename $0`"
+
+USAGE="
+NAME : $MYNAME - diff files under a direcoty
+
+USAGE : $MYNAME [-v | -h] TARGET_directory [ source_directoriy ... ]
+
+    source_directory : default is ./ (current directory)
+	-v : verbose option (the output of diff commnad is also displayed 
+	-h : print help message
+
+exapmple :
+	$MYNAME /foo/bar/target_dir
+	$MYNAME /foo/bar/target_dir ./dira
+	$MYNAME /foo/bar/target_dir *
+";
+
+
+case "$1" in
+-h | -help | --help | -\? )
+	echo "$USAGE"
+	exit 1
+	;;
+-v | -verbose | --verbose )
+	VERBOSE=1
+	shift
+	;;
+esac
+
+TARGET="$1"
+shift
+DIRS="$*"
+
+_null_="__NULL__"
+
+if [ "$TARGET$_null_"  = "$_null_" ]
+then
+	echo "$USAGE"
+	exit 1
+fi
+
+DIRS=${DIRS:=./}
+
+
+if [ "$VERBOSE$_null_" = "$_null_" ]
+then
+	find $DIRS -type f |while read f;do if ! diff $f $TARGET/$f >/dev/null ;then echo $f ;fi;done
+else
+	#echo "TARGET_DIR: $TARGET"
+	#echo "DIRS: $DIRS"
+	find $DIRS -type f |while read f;do \
+		if ! diff $f $TARGET/$f >/dev/null ;then echo "##### file_name: $f"; diff $f $TARGET/$f;fi;done
+fi
