@@ -66,8 +66,10 @@ my %ext_ptn = (
 	"cpp", "C H cpp hpp",
 	"java", "java jsp html",
 	"shell", "sh csh ksh bash tcsh",
-	"script", "awk nawk gawk perl pl py",
+	"script", "awk nawk gawk perl pl py bat",
 	"make", "mk MATCH_Makefile MATCH_makefile",
+	"obj", "o",
+	"lib", "a so",
 	"OTHER", "",
 	);
 
