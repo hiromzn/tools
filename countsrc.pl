@@ -167,15 +167,16 @@ sub count_flist
 		$kind =~ s/\..*$//;
 		$fh = $ext_outfh{ $ext };
 		if ( -s "$resd/$HEAD_STR.$ext.$FLIST_STR" ) {
-			printf( "RESULTS : %-16s : total line: ", "$ext" );
+			printf( "detail : %-16s : ", "$ext" );
 			system( "(echo /dev/null; cat $resd/$HEAD_STR.$ext.$FLIST_STR) |LANG=C xargs wc |sed '1d' |tee $resd/$HEAD_STR.$ext.wc |tail -1 |sed 's/total/$ext/' |tee -a $resd/$HEAD_STR.$kind._ktotal |sed 's/^ *//' |cut '-d ' -f1" );
 		} else {
-			printf( stderr "message : %-16s : no file\n", "$ext" ) if ( $warning );
+			printf( stderr "detail : %-16s : no file\n", "$ext" ) if ( $warning );
 		}
 	}
+	printf( "\n" );
 	foreach $kind ( sort keys %ext_ptn ) {
 		if ( -s "$resd/$HEAD_STR.$kind._ktotal" ) {
-			printf( "TOTAL : %-16s : total line: ", "$kind" );
+			printf( "TOTAL : %-16s : ", "$kind" );
 			system( "cat $resd/$HEAD_STR.$kind._ktotal |awk '{ a+=\$1; b+=\$2; c+=\$3; } END { print a,b,c; }' |tee $resd/$HEAD_STR.$kind._total |sed 's/^ *//' |cut '-d ' -f1" );
 		}
 	}
@@ -215,8 +216,8 @@ sub main
 		$resdir = $argres;
 	}
 
-	print "Source directory :$srctop\n";
-	print "Results directory :$resdir\n";
+	print "Source directory : $srctop\n";
+	print "Results directory : $resdir\n\n";
 	
 	cleanup_dir( $resdir );
 	countsrc( $srctop, $resdir );
