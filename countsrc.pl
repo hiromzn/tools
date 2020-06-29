@@ -61,7 +61,8 @@ if ( $debug ) {
 $OTHER_KEY="OTHER.NA";
 
 my %ext_ptn = (
-	"c", "c h pc",
+	"c", "c h",
+	"proc", "pc",
 	"cpp", "C H cpp hpp",
 	"java", "java jsp html",
 	"shell", "sh csh ksh bash tcsh",
