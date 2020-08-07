@@ -11,12 +11,10 @@ my $FLIST_STR = "flist";
 #
 # usage:
 #
-sub usage
-{
-	my $msg = "
+my $usage_msg = "
 NAME: countsrc.pl : count source code
 
-SYNOPSIS: countsrc.pl [-v] [-d] [-s <top_dir>] [-r <results_dir>] 
+SYNOPSIS: countsrc.pl [-v] [-d] [-h] [-s <top_dir>] [-r <results_dir>] 
 
 DESCRIPTION: 
   options :
@@ -24,6 +22,7 @@ DESCRIPTION:
 	-r <results_dir>	   .... default $argres_def
 	-v					   .... print message
 	-d					   .... print debug message
+	-h					   .... print detail help
 
   priority of source or results directory :
 	option > environment > default
@@ -36,8 +35,49 @@ EXAMPLES:
 	countsrc.pl
 	countsrc.pl -src /usr/local/dev/version1
 	countsrc.pl -src /usr/local/dev/version1 -res /var/tmp/countres
+
 ";
-	print $msg;
+
+my $detail_msg = "
+SAMPLE output:
+
+$ tools/countsrc.pl -s src/ -r res  
+Source directory : src/
+Results directory : res
+
+detail : OTHER.NA         :     552328 lines
+detail : c.c              :   12417652 lines
+detail : c.h              :    2045903 lines
+detail : cpp.cpp          :    3681983 lines
+detail : lib.so           :       1181 lines
+detail : make.Makefile    :      13487 lines
+detail : make.makefile    :     136890 lines
+detail : other.log        :      51927 lines
+detail : other.txt        :        495 lines
+detail : script.bat       :        589 lines
+detail : shell.csh        :     527700 lines
+detail : shell.sh         :      35219 lines
+
+TOTAL : OTHER            :     552328 lines
+TOTAL : c                :   14463555 lines
+TOTAL : cpp              :    3681983 lines
+TOTAL : lib              :       1181 lines
+TOTAL : make             :     150377 lines
+TOTAL : other            :      52422 lines
+TOTAL : script           :        589 lines
+TOTAL : shell            :     562919 lines
+";
+
+sub usage
+{
+	print $usage_msg;
+	exit 1;
+}
+
+sub usage_detail
+{
+	print $usage_msg;
+	print $detail_msg;
 	exit 1;
 }
 
@@ -49,7 +89,12 @@ GetOptions(
 	'r=s' => \$argres, # results directory
 	'v' => \$warning,  # print message
 	'd' => \$debug,	   # print debug
+	'h' => \$pr_help,   # print detail usage
 	) or usage();
+
+if ( $pr_help ) {
+	usage_detail();
+}
 
 if ( $debug ) {
 	$warning = 1;
@@ -64,12 +109,14 @@ my %ext_ptn = (
 	"c", "c h",
 	"proc", "pc",
 	"cpp", "C H cpp hpp",
+	"fortran", "f for inc INC",
 	"java", "java jsp html",
 	"shell", "sh csh ksh bash tcsh",
 	"script", "awk nawk gawk perl pl py bat",
 	"make", "mk MATCH_Makefile MATCH_makefile",
 	"obj", "o",
 	"lib", "a so",
+	"other", "log txt",
 	"OTHER", "",
 	);
 
@@ -168,7 +215,7 @@ sub count_flist
 		$fh = $ext_outfh{ $ext };
 		if ( -s "$resd/$HEAD_STR.$ext.$FLIST_STR" ) {
 			printf( "detail : %-16s : ", "$ext" );
-			system( "(echo /dev/null; cat $resd/$HEAD_STR.$ext.$FLIST_STR) |LANG=C xargs wc |sed '1d' |tee $resd/$HEAD_STR.$ext.wc |tail -1 |sed 's/total/$ext/' |tee -a $resd/$HEAD_STR.$kind._ktotal |sed 's/^ *//' |cut '-d ' -f1" );
+			system( "(echo /dev/null; cat $resd/$HEAD_STR.$ext.$FLIST_STR) |LANG=C xargs wc -l |sed '1d' |tee $resd/$HEAD_STR.$ext.wc |grep ' total\$' |sed 's/ total//' |awk '{a+=\$1;} END{ print a, \"total\";}' |sed 's/total/:$ext/' |tee -a $resd/$HEAD_STR.$kind._ktotal |cut -d: -f1 |awk '{printf( \"%10d lines\\n\", \$1);}'" );
 		} else {
 			printf( stderr "detail : %-16s : no file\n", "$ext" ) if ( $warning );
 		}
@@ -177,7 +224,7 @@ sub count_flist
 	foreach $kind ( sort keys %ext_ptn ) {
 		if ( -s "$resd/$HEAD_STR.$kind._ktotal" ) {
 			printf( "TOTAL : %-16s : ", "$kind" );
-			system( "cat $resd/$HEAD_STR.$kind._ktotal |awk '{ a+=\$1; b+=\$2; c+=\$3; } END { print a,b,c; }' |tee $resd/$HEAD_STR.$kind._total |sed 's/^ *//' |cut '-d ' -f1" );
+			system( "cat $resd/$HEAD_STR.$kind._ktotal |awk '{ a+=\$1; b+=\$2; c+=\$3; } END { print a,b,c; }' |tee $resd/$HEAD_STR.$kind._total |sed 's/^ *//' |cut '-d ' -f1 |awk '{printf( \"%10d lines\\n\", \$1);}'" );
 		}
 	}
 }
